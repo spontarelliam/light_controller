@@ -20,6 +20,8 @@ I used a CAT5 cable to wire the RFID reader as follows,
 
 
 The output pins are wired as follows,
+|Output | Arduino Pin|
+|-----|-----|
 |Output 1 | D3|
 |Output 2 | D4|
 |Output 3 | D5|
