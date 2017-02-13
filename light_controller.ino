@@ -1,6 +1,5 @@
 #include <SPI.h>
 #include <MFRC522.h>
-#include <Time.h>
 
 #define RST_PIN     9      
 #define SS_PIN      10      
@@ -8,9 +7,10 @@
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance
 MFRC522::MIFARE_Key key;
 
-uint16_t solution = 2440;  // mfrc522.uid.size
+uint16_t solutions[3] = {2440, 52732, 65513};
 uint16_t current_glyph = 0;
 int correct = 0;
+unsigned long time;
 
 void setup()
 {
@@ -50,36 +50,44 @@ uint16_t read_card() {
 
 void loop()
 {
-  
   mfrc522.PICC_ReadCardSerial(); //Always fails
   mfrc522.PICC_IsNewCardPresent(); //Does RequestA 
   current_glyph = read_card();
 
-
-  if (current_glyph == solution){
-    Serial.println("FOUND");
-    Serial.println(now());
-    
-    if (correct == 1){
-      digitalWrite(3, HIGH);
+    if (current_glyph == solutions[0] || current_glyph == solutions[1] || current_glyph == solutions[2]){    
+      if (correct == 0 && time==0){
+        digitalWrite(3, HIGH);
+        Serial.println("FOUND 1");
+        time = millis(); // start timer
+        correct += 1;
+      }
+      else if (correct == 1 && (millis()-time) > 1000){
+        digitalWrite(4, HIGH);
+        Serial.println("FOUND 2");
+        correct += 1;
+        
+      }
+      else if (correct == 2 && (millis()-time) > 2000){
+        digitalWrite(5, HIGH);
+        Serial.println("FOUND 3");
+        correct += 1;
+      }
+      else if (correct >= 3 && (millis()-time) > 3000){
+        digitalWrite(6, HIGH);
+        Serial.println("FOUND 4");
+        correct += 1;
+      }
     }
-    else if (correct == 2){
-      digitalWrite(4, HIGH);
+    else{
+      correct = 0;
+      time = 0;
+      Serial.println("RESET");
+      digitalWrite(3, LOW);
+      digitalWrite(4, LOW);
+      digitalWrite(5, LOW);
+      digitalWrite(6, LOW);
     }
-    else if (correct == 3){
-      digitalWrite(5, HIGH);
-    }
-    else if (correct == 4){
-      digitalWrite(6, HIGH);
-    }
-    
-    correct += 1;
-  }
-  else{
-    correct = 0;
-  }
   
-  delay(1000);
 }
 
 
